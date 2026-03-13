@@ -7,9 +7,9 @@ export default defineConfig({
   // Branding - your organization's identity
   branding: {
     name: "WCC Prompt Library",
-    logo: "/WCCLogo.svg",
-    logoDark: "/WCCLogoDark.svg",
-    favicon: "/WCCLogo.svg",
+    logo: "/logo.svg",
+    logoDark: "/logo.svg",
+    favicon: "/logo.svg",
     description: "Collect, organize, and share AI prompts",
   },
 
@@ -19,13 +19,13 @@ export default defineConfig({
     variant: "default",
     density: "default",
     colors: {
-      primary: "#FF4701",
+      primary: "#6366f1",
     },
   },
 
   // Authentication plugins
   auth: {
-    providers: ["github"],
+    providers: ["credentials"],
     allowRegistration: false,
   },
 
@@ -54,8 +54,10 @@ export default defineConfig({
       enabled: false, // Disabled for private clones
     },
     sponsors: {
-      enabled: false,
-      items: [],
+      enabled: true,
+      items: [
+        { name: "Acme Inc", logo: "/sponsors/acme.svg", url: "https://acme.com" }
+      ],
     },
   },
 });

@@ -342,7 +342,7 @@ function MediaField({ form, t, promptType, promptContent }: MediaFieldProps) {
 
 const createPromptSchema = (t: (key: string) => string) => z.object({
   title: z.string().min(1, t("titleRequired")).max(200),
-  description: z.string().max(500).optional(),
+  description: z.string().max(1000).optional(),
   content: z.string().min(1, t("contentRequired")),
   type: z.enum(["TEXT", "IMAGE", "VIDEO", "AUDIO", "SKILL", "TASTE"]), // Output type, SKILL, or TASTE
   structuredFormat: z.enum(["JSON", "YAML"]).optional(),

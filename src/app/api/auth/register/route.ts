@@ -8,7 +8,7 @@ const registerSchema = z.object({
   name: z.string().min(2),
   username: z.string().min(1).regex(/^[a-zA-Z0-9_]+$/),
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(8),
 });
 
 export async function POST(request: Request) {

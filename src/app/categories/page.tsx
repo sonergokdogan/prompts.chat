@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { unstable_cache } from "next/cache";
-import { FolderOpen, ChevronRight } from "lucide-react";
+import { FolderOpen, ChevronRight, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { SubscribeButton } from "@/components/categories/subscribe-button";
@@ -75,8 +76,20 @@ export default async function CategoriesPage() {
   return (
     <div className="container py-6">
       <div className="mb-6">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-lg font-semibold">{t("title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("description")}</p>
+          </div>
+          {session?.user && (
+            <Button size="sm" className="h-8 text-xs w-full sm:w-auto" asChild>
+              <Link href="/categories/new">
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                {t("create")}
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {rootCategories.length === 0 ? (

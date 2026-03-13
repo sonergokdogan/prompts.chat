@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
 
 /**
@@ -28,7 +29,11 @@ export async function POST(request: NextRequest) {
 
   const providedSecret = authHeader?.replace("Bearer ", "");
 
-  if (providedSecret !== cronSecret) {
+  if (
+    !providedSecret ||
+    providedSecret.length !== cronSecret.length ||
+    !timingSafeEqual(Buffer.from(providedSecret), Buffer.from(cronSecret))
+  ) {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401 }
@@ -60,7 +65,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Also support GET for simple health checks / manual triggers via browser
-export async function GET(request: NextRequest) {
-  return POST(request);
-}
+
