@@ -57,6 +57,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     notFound();
   }
 
+  // Fetch subcategories if this category has children
+  const subcategories = await db.category.findMany({
+    where: { parentId: category.id },
+    orderBy: { order: "asc" },
+  });
+
   // Check if user is subscribed
   const isSubscribed = session?.user
     ? await db.categorySubscription.findUnique({
@@ -69,9 +75,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       })
     : null;
 
-  // Build where clause with optional search
+  // Build where clause with optional search — include subcategory prompts
+  const categoryIds = [category.id, ...subcategories.map((s) => s.id)];
   const whereClause = {
-    categoryId: category.id,
+    categoryId: { in: categoryIds },
     isPrivate: false,
     isUnlisted: false,
     deletedAt: null,
@@ -193,6 +200,22 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           {config.features.mcp !== false && <McpServerPopup initialCategories={[slug]} showOfficialBranding={!config.homepage?.useCloneBranding} />}
         </div>
       </div>
+
+      {/* Subcategories */}
+      {subcategories.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          {subcategories.map((sub) => (
+            <Link
+              key={sub.id}
+              href={`/categories/${sub.slug}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border bg-background hover:bg-accent border-border transition-colors"
+            >
+              {sub.icon && <span>{sub.icon}</span>}
+              {sub.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Prompts */}
       <PromptList prompts={prompts} currentPage={currentPage} totalPages={totalPages} />

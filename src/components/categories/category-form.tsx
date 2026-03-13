@@ -102,7 +102,7 @@ export function CategoryForm({ categories = [] }: CategoryFormProps) {
 
       const category = await res.json();
       toast.success("Category created successfully");
-      router.push(`/categories/${category.slug}`);
+      router.push("/categories");
     } catch (error) {
       toast.error("Failed to create category");
       console.error(error);

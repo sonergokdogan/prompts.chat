@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    revalidateTag("categories", "max");
+    revalidateTag("categories", "now");
+    revalidatePath("/categories");
 
     return NextResponse.json(category);
   } catch (error) {

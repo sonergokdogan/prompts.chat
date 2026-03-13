@@ -14,21 +14,51 @@ const visiblePromptFilter = {
   deletedAt: null,
 };
 
+// Build a tree from a flat list of categories
+interface CategoryNode {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  icon: string | null;
+  order: number;
+  pinned: boolean;
+  parentId: string | null;
+  promptCount: number;
+  children: CategoryNode[];
+}
+
+function buildTree(
+  categories: { id: string; name: string; slug: string; description: string | null; icon: string | null; order: number; pinned: boolean; parentId: string | null }[],
+  countMap: Map<string, number>
+): CategoryNode[] {
+  const childrenMap = new Map<string, typeof categories>();
+  for (const cat of categories) {
+    if (cat.parentId) {
+      if (!childrenMap.has(cat.parentId)) childrenMap.set(cat.parentId, []);
+      childrenMap.get(cat.parentId)!.push(cat);
+    }
+  }
+
+  function attach(cat: (typeof categories)[number]): CategoryNode {
+    const children = (childrenMap.get(cat.id) || []).map(attach);
+    return { ...cat, promptCount: countMap.get(cat.id) || 0, children };
+  }
+
+  return categories
+    .filter((c) => c.parentId === null)
+    .map(attach);
+}
+
 // Cached categories query with filtered prompt counts
 const getCategories = unstable_cache(
   async () => {
-    const categories = await db.category.findMany({
-      where: { parentId: null },
+    // Fetch all categories in one query
+    const allCategories = await db.category.findMany({
       orderBy: { order: "asc" },
-      include: {
-        children: {
-          orderBy: { order: "asc" },
-        },
-      },
     });
 
-    // Get all category IDs (parents + children)
-    const allCategoryIds = categories.flatMap((c) => [c.id, ...c.children.map((child) => child.id)]);
+    const allCategoryIds = allCategories.map((c) => c.id);
 
     // Count visible prompts per category in one query
     const counts = await db.prompt.groupBy({
@@ -40,17 +70,9 @@ const getCategories = unstable_cache(
       _count: true,
     });
 
-    const countMap = new Map(counts.map((c) => [c.categoryId, c._count]));
+    const countMap = new Map<string, number>(counts.filter((c) => c.categoryId !== null).map((c) => [c.categoryId!, c._count]));
 
-    // Attach counts to categories
-    return categories.map((category) => ({
-      ...category,
-      promptCount: countMap.get(category.id) || 0,
-      children: category.children.map((child) => ({
-        ...child,
-        promptCount: countMap.get(child.id) || 0,
-      })),
-    }));
+    return buildTree(allCategories, countMap);
   },
   ["categories-page"],
   { tags: ["categories"] }
@@ -139,36 +161,69 @@ export default async function CategoriesPage() {
               {category.children.length > 0 && (
                 <div className="ml-8 space-y-1">
                   {category.children.map((child) => (
-                    <div
-                      key={child.id}
-                      className="group py-2 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        {child.icon && (
-                          <span className="text-sm">{child.icon}</span>
+                    <div key={child.id}>
+                      <div className="group py-2 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          {child.icon && (
+                            <span className="text-sm">{child.icon}</span>
+                          )}
+                          <Link
+                            href={`/categories/${child.slug}`}
+                            className="text-sm font-medium hover:underline"
+                          >
+                            {child.name}
+                          </Link>
+                          {session?.user && (
+                            <SubscribeButton
+                              categoryId={child.id}
+                              categoryName={child.name}
+                              initialSubscribed={subscribedIds.has(child.id)}
+                              iconOnly
+                            />
+                          )}
+                          <span className="text-xs text-muted-foreground">
+                            {child.promptCount}
+                          </span>
+                        </div>
+                        {child.description && (
+                          <p className="text-xs text-muted-foreground mt-1 ml-6 line-clamp-1">
+                            {child.description}
+                          </p>
                         )}
-                        <Link
-                          href={`/categories/${child.slug}`}
-                          className="text-sm font-medium hover:underline"
-                        >
-                          {child.name}
-                        </Link>
-                        {session?.user && (
-                          <SubscribeButton
-                            categoryId={child.id}
-                            categoryName={child.name}
-                            initialSubscribed={subscribedIds.has(child.id)}
-                            iconOnly
-                          />
-                        )}
-                        <span className="text-xs text-muted-foreground">
-                          {child.promptCount}
-                        </span>
                       </div>
-                      {child.description && (
-                        <p className="text-xs text-muted-foreground mt-1 ml-6 line-clamp-1">
-                          {child.description}
-                        </p>
+                      {/* Grandchildren (e.g., Coding → Web Development, DevOps, etc.) */}
+                      {child.children.length > 0 && (
+                        <div className="ml-6 space-y-0.5">
+                          {child.children.map((grandchild) => (
+                            <div
+                              key={grandchild.id}
+                              className="group py-1.5 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                {grandchild.icon && (
+                                  <span className="text-xs">{grandchild.icon}</span>
+                                )}
+                                <Link
+                                  href={`/categories/${grandchild.slug}`}
+                                  className="text-xs font-medium hover:underline"
+                                >
+                                  {grandchild.name}
+                                </Link>
+                                {session?.user && (
+                                  <SubscribeButton
+                                    categoryId={grandchild.id}
+                                    categoryName={grandchild.name}
+                                    initialSubscribed={subscribedIds.has(grandchild.id)}
+                                    iconOnly
+                                  />
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {grandchild.promptCount}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   ))}
