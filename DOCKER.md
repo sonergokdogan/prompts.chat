@@ -26,12 +26,14 @@ docker run -d \
   --name my-prompts \
   -p 4444:3000 \
   -v prompts-data:/data \
-  -e PCHAT_NAME="Acme Prompts" \
-  -e PCHAT_DESCRIPTION="Our team's AI prompt library" \
-  -e PCHAT_COLOR="#ff6600" \
-  -e PCHAT_AUTH_PROVIDERS="github,google" \
-  -e PCHAT_LOCALES="en,es,fr" \
-  ghcr.io/f/prompts.chat
+  -e PCHAT_NAME="WCC Prompt Library" \
+  -e PCHAT_DESCRIPTION="WCC AI prompt library" \
+  -e PCHAT_COLOR="#FF4701" \
+  -e PCHAT_LOGO="/WCCLogo.svg" \
+  -e PCHAT_LOGO_DARK="/WCCLogoDark.svg" \
+  -e PCHAT_AUTH_PROVIDERS="github" \
+  -e PCHAT_LOCALES="en" \
+  prompts-chat
 ```
 
 > **Note:** Branding is applied during the first build. To change branding later, delete the volume and re-run:

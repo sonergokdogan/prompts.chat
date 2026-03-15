@@ -10,7 +10,7 @@ echo "╚═══════════════════════�
 echo ""
 
 # Paths
-APP_DIR="/data/app"
+APP_DIR="/app"
 PGDATA="/data/postgres"
 PGBIN="/usr/lib/postgresql/15/bin"
 BUILD_MARKER="/data/.built"
@@ -53,54 +53,38 @@ EOF
     echo "✓ PostgreSQL initialized"
 fi
 
-# Clone and build on first run
+# Build on first run (source code is already in /app from Docker image)
 if [ ! -f "$BUILD_MARKER" ]; then
     echo ""
     echo "▶ First run detected - building prompts.chat..."
     echo ""
-    
-    # Clone repository
-    if [ ! -d "$APP_DIR/.git" ]; then
-        echo "▶ Cloning repository..."
-        rm -rf "$APP_DIR"
-        git clone --depth 1 "$REPO_URL" "$APP_DIR"
-        echo "✓ Repository cloned"
-    fi
-    
+
     cd "$APP_DIR"
-    
-    # Clean up unnecessary files
-    rm -rf .github .claude packages .git
-    
-    # Install dependencies (including devDependencies needed for build)
-    echo "▶ Installing dependencies..."
-    NODE_ENV=development npm ci
-    echo "✓ Dependencies installed"
-    
-    # Run docker-setup.js to generate config with branding
+
+    # Generate config from environment variables
     echo "▶ Generating configuration..."
     node scripts/docker-setup.js
     echo "✓ Configuration generated"
-    
+
     # Generate Prisma client
     echo "▶ Generating Prisma client..."
     npx prisma generate
     echo "✓ Prisma client generated"
-    
+
     # Build Next.js
     echo "▶ Building Next.js application (this may take a few minutes)..."
     npm run build
     echo "✓ Build complete"
-    
+
     # Copy static files for standalone mode
     echo "▶ Copying static assets..."
     cp -r .next/static .next/standalone/.next/
     cp -r public .next/standalone/
     echo "✓ Static assets copied"
-    
+
     # Mark as built
     touch "$BUILD_MARKER"
-    
+
     echo ""
     echo "✅ Build complete! Starting application..."
     echo ""
@@ -149,7 +133,7 @@ fi
 # Wait for supervisord socket to be ready
 echo "▶ Waiting for supervisord..."
 for i in $(seq 1 30); do
-    if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status >/dev/null 2>&1; then
+    if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf pid >/dev/null 2>&1; then
         echo "✓ Supervisord is ready"
         break
     fi
@@ -169,7 +153,7 @@ echo "╔═══════════════════════�
 echo "║                                                               ║"
 echo "║   ✅ prompts.chat is running!                                 ║"
 echo "║                                                               ║"
-echo "║   🌐 Open http://localhost:${PORT:-80} in your browser            ║"
+echo "║   🌐 Open http://localhost:${PORT:-3000} in your browser         ║"
 echo "║                                                               ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
