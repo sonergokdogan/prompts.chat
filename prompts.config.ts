@@ -6,7 +6,7 @@ const useCloneBranding = true;
 export default defineConfig({
   // Branding - your organization's identity
   branding: {
-    name: "WCC Prompt Library",
+    name: "WCC Prompts  Library",
     logo: "/WCCLogo.svg",
     logoDark: "/WCCLogoDark.svg",
     favicon: "/WCCLogo.svg",

@@ -57,6 +57,25 @@ npx prompts.chat
 - `b` — Go back
 - `q` — Quit
 
+### MCP Server
+
+Run the prompts.chat MCP server locally over stdio:
+
+```bash
+npx prompts.chat mcp
+```
+
+To save prompts to your account, provide your API key as an environment variable:
+
+```bash
+PROMPTS_API_KEY=pchat_your_api_key_here npx prompts.chat mcp
+```
+
+Optional environment variables:
+
+- `PROMPTS_BASE_URL` to point the bridge at a different prompts.chat deployment
+- `PROMPTS_QUERY` to forward `users=...`, `categories=...`, or `tags=...` filters to the remote MCP endpoint
+
 ---
 
 ## Quick Start

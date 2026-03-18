@@ -32,6 +32,8 @@ docker run -d \
   -e PCHAT_LOGO="/WCCLogo.svg" \
   -e PCHAT_LOGO_DARK="/WCCLogoDark.svg" \
   -e PCHAT_AUTH_PROVIDERS="github" \
+  -e AUTH_GITHUB_ID="Ov23lik10pUSIrEBb88t" \
+  -e AUTH_GITHUB_SECRET="5e5e210247d5366e727bab330263335ecaf4ed24" \
   -e PCHAT_LOCALES="en" \
   prompts-chat
 ```
@@ -97,6 +99,8 @@ All variables are prefixed with `PCHAT_` to avoid conflicts.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `PCHAT_URL` | External URL for OAuth callbacks (required for OAuth providers) | `http://localhost:4444` |
+| `PCHAT_PORT` | External port (used to construct default URL if `PCHAT_URL` is not set) | `4444` |
 | `AUTH_SECRET` | Secret for authentication tokens | Auto-generated |
 | `PORT` | Internal container port | `3000` |
 | `DATABASE_URL` | PostgreSQL connection string | Internal DB |
@@ -123,6 +127,7 @@ docker run -d \
   -p 4444:3000 \
   -v prompts-data:/data \
   -e AUTH_SECRET="your-secret-key" \
+  -e PCHAT_URL="http://localhost:4444" \
   -e PCHAT_AUTH_PROVIDERS="github,google" \
   -e AUTH_GITHUB_ID="your-github-client-id" \
   -e AUTH_GITHUB_SECRET="your-github-client-secret" \
@@ -130,6 +135,8 @@ docker run -d \
   -e AUTH_GOOGLE_SECRET="your-google-client-secret" \
   ghcr.io/f/prompts.chat
 ```
+
+> **Important:** `PCHAT_URL` must match the URL users access in their browser (including port). This is required for OAuth callback URLs to work correctly.
 
 ### With AI Features (OpenAI)
 

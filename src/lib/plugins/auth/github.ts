@@ -6,8 +6,8 @@ export const githubPlugin: AuthPlugin = {
   name: "GitHub",
   getProvider: () =>
     GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      clientId: process.env.AUTH_GITHUB_ID || process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.AUTH_GITHUB_SECRET || process.env.GITHUB_CLIENT_SECRET!,
       profile(profile) {
         return {
           id: profile.id.toString(),
